@@ -1,0 +1,21 @@
+name: Check Release for Tag
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  check-release:
+    runs-on: rs-default
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check Release for Tag
+        uses: ./action
+        with:
+          tag: ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

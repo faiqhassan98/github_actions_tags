@@ -1,0 +1,12 @@
+name: 'Check Release for Tag'
+
+description: 'Checks if a given git tag has a corresponding release in the current repository'
+
+inputs:
+  tag:
+    description: 'The git tag to check'
+    required: true
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
