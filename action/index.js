@@ -1,32 +1,26 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const fetch = require('node-fetch');
 
 async function run() {
   try {
     // Get the input tag and remove 'refs/tags/' if present
     let tag = core.getInput('tag');
-    tag = tag.replace(/^refs\/tags\//, ''); // Remove 'refs/tags/' prefix
+    tag = tag.replace(/^refs\/tags\//, '');
 
-    // Get the releases URL from the GitHub context
-    const releasesUrl = github.context.payload.repository.releases_url.replace('{/id}', '');
+    // Setup Octokit with auth
+    const token = process.env.GITHUB_TOKEN;
+    const octokit = github.getOctokit(token);
 
-    // Issue a GET request to the releases URL
-    const response = await fetch(releasesUrl, {
-      headers: {
-        'Authorization': `token ${process.env.GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json',
-      },
+    const { owner, repo } = github.context.repo;
+
+    // List all releases
+    const releases = await octokit.rest.repos.listReleases({
+      owner,
+      repo,
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}`);
-    }
-
-    const releases = await response.json();
-
-    // Check if a release with the tag exists
-    const release = releases.find(release => release.tag_name === tag);
+    // Check for a release matching the tag
+    const release = releases.data.find(r => r.tag_name === tag);
 
     if (release) {
       core.info(`✅ Release for tag "${tag}" exists: ${release.html_url}`);
